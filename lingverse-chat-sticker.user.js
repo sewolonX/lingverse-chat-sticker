@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         LingVerse 聊天表情
 // @namespace    local.lingverse.sticker
-// @version      1.0.1
-// @description  灵界聊天自定义表情：点表情按钮发送，装了脚本的玩家互相可见图片
+// @version      1.0.2
+// @description  灵界聊天自定义贴纸：点贴纸按钮发送，装了脚本的玩家互相可见图片
 // @match        https://ling.muge.info/*
 // @grant        GM_xmlhttpRequest
 // @connect      *
@@ -76,15 +76,15 @@
             'background:var(--stk-bg);',
             'border:1px solid var(--stk-border);',
             'border-radius:12px;',
-            'width:272px;max-height:400px;overflow-y:auto;',
+            'width:272px;max-height:400px;',
             'box-shadow:0 0 6px rgba(0,0,0,.15);',
             'font-size:13px;font-family:var(--stk-font);color:var(--stk-text);',
-            'display:none;',
+            'display:none;flex-direction:column;',
             'user-select:none;-webkit-tap-highlight-color:transparent;',
             '}',
-            '#lvStickerPicker::-webkit-scrollbar{width:5px;}',
-            '#lvStickerPicker::-webkit-scrollbar-thumb{background:var(--stk-btn-border);border-radius:3px;}',
-            '#lvStickerPicker::-webkit-scrollbar-track{background:transparent;}',
+            '#lvStickerScroll::-webkit-scrollbar{width:5px;}',
+            '#lvStickerScroll::-webkit-scrollbar-thumb{background:var(--stk-btn-border);border-radius:3px;}',
+            '#lvStickerScroll::-webkit-scrollbar-track{background:transparent;}',
             '/* 输入框允许选中文字 */',
             '#lvStickerPicker input[type="text"]{user-select:text;}',
             '.lv-sticker-item{',
@@ -97,13 +97,14 @@
             '.lv-sticker-text{',
             'display:flex;align-items:center;justify-content:center;',
             'width:50px;height:50px;',
-            'font-size:22px;overflow:hidden;',
+            'font-size:14px;overflow:hidden;',
             'line-height:1.2;text-align:center;',
             '}',
             '.lv-sticker-name{font-size:10px;color:var(--stk-label);max-width:54px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:3px;}',
             '/* 管理区 */',
             '.lv-mgmt-divider{border-top:1px solid var(--stk-btn-border);}',
             '.lv-mgmt-toggle{',
+            'display:flex;align-items:center;justify-content:center;',
             'width:100%;height:34px;',
             'background:var(--stk-btn-bg);border:0;',
             'color:var(--stk-label);font-size:11px;font-weight:600;font-family:var(--stk-font);',
@@ -126,6 +127,7 @@
             '.lv-mgmt-row input[type="text"]::placeholder{color:var(--stk-label);}',
             '.lv-mgmt-row-actions{display:flex;gap:6px;align-items:center;margin-bottom:10px;}',
             '.lv-btn{',
+            'display:inline-flex;align-items:center;justify-content:center;',
             'height:30px;padding:0 14px;',
             'background:var(--stk-btn-bg);',
             'border:1px solid var(--stk-btn-border);',
@@ -138,6 +140,7 @@
             '.lv-btn-add{background:var(--stk-accent);color:var(--stk-accent-text);border-color:var(--stk-accent);}',
             '.lv-btn-add:hover{background:var(--stk-accent-hover);}',
             '.lv-btn-outline{',
+            'display:inline-flex;align-items:center;justify-content:center;',
             'height:26px;padding:0 10px;font-size:11px;',
             'background:transparent;',
             'border:1px solid var(--stk-btn-border);',
@@ -145,7 +148,7 @@
             'cursor:pointer;transition:background .2s,color .2s;',
             '}',
             '.lv-btn-outline:hover{background:var(--stk-btn-hover-bg);color:var(--stk-btn-hover-text);}',
-            '/* 表情大小滑块 */',
+            '/* 贴纸大小滑块 */',
             'input.lv-size-slider{',
             'width:100%;height:6px;',
             '-webkit-appearance:none !important;appearance:none !important;',
@@ -184,7 +187,7 @@
             '.lv-size-label span:first-child{font-size:11px;font-weight:600;font-family:var(--stk-font);color:var(--stk-label);letter-spacing:.3px;}',
             '.lv-size-label span:last-child{font-size:11px;font-weight:600;font-family:var(--stk-font);color:var(--stk-accent);}',
             '.lv-mgmt-item{',
-            'position:relative;',
+            'position:relative;min-width:0;',
             'background:var(--stk-item-bg);',
             'border:1px solid var(--stk-item-border);',
             'border-radius:8px;padding:4px;text-align:center;',
@@ -193,16 +196,17 @@
             '.lv-mgmt-text{',
             'display:flex;align-items:center;justify-content:center;',
             'width:100%;height:38px;',
-            'font-size:16px;overflow:hidden;',
+            'font-size:11px;overflow:hidden;',
             'line-height:1.2;text-align:center;',
             '}',
-            '.lv-mgmt-name{font-size:9px;color:var(--stk-label);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:2px;}',
+            '.lv-mgmt-name{font-size:9px;color:var(--stk-label);word-break:break-all;margin-top:2px;}',
             '.lv-mgmt-del{',
             'position:absolute;top:3px;right:3px;',
+            'display:flex;align-items:center;justify-content:center;',
             'width:16px;height:16px;padding:0;',
             'background:var(--stk-danger);color:var(--stk-danger-text);',
             'border:0;border-radius:50%;',
-            'font-size:10px;line-height:16px;cursor:pointer;',
+            'font-size:10px;cursor:pointer;',
             'font-family:var(--stk-font);',
             'transition:background .2s;',
             '}',
@@ -222,19 +226,21 @@
             '/* 聊天内贴纸 */',
             '.lv-chat-sticker{width:var(--stk-sticker-size,50%);height:auto;object-fit:contain;vertical-align:middle;border-radius:6px;margin:0 1px;}',
             '.lv-chat-sticker-video-btn{',
-            'display:inline-block;padding:6px 14px;',
+            'display:inline-flex;align-items:center;justify-content:center;',
+            'padding:6px 14px;',
             'background:var(--stk-accent);color:var(--stk-accent-text);',
             'border-radius:6px;font-size:12px;font-family:var(--stk-font);',
-            'cursor:pointer;vertical-align:middle;margin:0 2px;',
+            'cursor:pointer;margin:0 2px;',
             'transition:background .2s;',
             '}',
             '.lv-chat-sticker-video-btn:hover{background:var(--stk-accent-hover);}',
             '.lv-chat-sticker-audio-btn{',
-            'display:inline-block;padding:6px 14px;',
+            'display:inline-flex;align-items:center;justify-content:center;',
+            'padding:6px 14px;',
             'background:var(--stk-btn-bg);color:var(--stk-btn-text);',
             'border:1px solid var(--stk-btn-border);',
             'border-radius:6px;font-size:12px;font-family:var(--stk-font);',
-            'cursor:pointer;vertical-align:middle;margin:0 2px;',
+            'cursor:pointer;margin:0 2px;',
             'transition:background .2s,color .2s;',
             '}',
             '.lv-chat-sticker-audio-btn:hover{background:var(--stk-btn-hover-bg);color:var(--stk-btn-hover-text);}',
@@ -258,11 +264,12 @@
             'display:flex;align-items:center;justify-content:center;',
             'width:50px;height:50px;font-size:28px;',
             '}',
-            '/* 表情详情弹窗 */',
+            '/* 贴纸详情弹窗 */',
             '.lv-detail-overlay{',
             'position:fixed;inset:0;z-index:2147483647;',
             'background:rgba(0,0,0,.55);',
             'display:flex;align-items:center;justify-content:center;',
+            'touch-action:none;',
             '}',
             '.lv-detail-card{',
             'background:var(--stk-bg);',
@@ -283,10 +290,11 @@
             'font-size:14px;font-weight:700;font-family:var(--stk-font);color:var(--stk-text);',
             '}',
             '.lv-detail-close{',
+            'display:flex;align-items:center;justify-content:center;',
             'width:28px;height:28px;padding:0;',
             'background:var(--stk-btn-bg);border:1px solid var(--stk-btn-border);',
             'border-radius:50%;color:var(--stk-btn-text);',
-            'font-size:16px;line-height:26px;cursor:pointer;text-align:center;',
+            'font-size:16px;cursor:pointer;',
             'font-family:var(--stk-font);transition:background .2s,color .2s;',
             '}',
             '.lv-detail-close:hover{background:var(--stk-btn-hover-bg);color:var(--stk-btn-hover-text);}',
@@ -297,7 +305,7 @@
             '}',
             '.lv-detail-img-wrap.grabbing{cursor:grabbing;}',
             '.lv-detail-img{',
-            'max-width:100%;max-height:50vh;',
+            'max-width:100%;',
             'object-fit:contain;',
             'display:block;',
             'transition:none;',
@@ -308,10 +316,11 @@
             '}',
             '.lv-detail-zoom .lv-size-slider{flex:1;}',
             '.lv-detail-zoom .lv-zoom-btn{',
+            'display:flex;align-items:center;justify-content:center;',
             'width:26px;height:26px;padding:0;',
             'background:var(--stk-btn-bg);border:1px solid var(--stk-btn-border);',
             'border-radius:6px;color:var(--stk-btn-text);',
-            'font-size:15px;line-height:24px;cursor:pointer;text-align:center;',
+            'font-size:15px;cursor:pointer;',
             'font-family:var(--stk-font);transition:background .2s,color .2s;',
             'flex:0 0 auto;',
             '}',
@@ -335,14 +344,15 @@
             '.lv-detail-actions .lv-btn{flex:1;}',
             '/* Toast */',
             '.lv-toast{',
-            'position:fixed;top:60px;left:50%;transform:translateX(-50%);z-index:2147483647;',
             'background:var(--stk-bg);color:var(--stk-text);',
             'padding:9px 18px;border-radius:8px;',
             'font-size:12px;font-family:var(--stk-font);pointer-events:none;',
             'border:1px solid var(--stk-border);',
             'box-shadow:0 4px 16px rgba(0,0,0,.3);',
             'transition:opacity .3s;',
+            'white-space:nowrap;',
             'user-select:none;-webkit-tap-highlight-color:transparent;',
+            'opacity:0.9;',
             '}'
         ].join('\n');
         (document.head || document.documentElement).appendChild(s);
@@ -372,55 +382,91 @@
     // ---- 图片加载：直连失败时走 GM_xmlhttpRequest 绕过 PNA 限制 ----
     var _blobCache = {}; // url → blobUrl
 
+    // 页面卸载时释放所有缓存的 blob URL，防止内存泄漏
+    window.addEventListener('beforeunload', function () {
+        for (var key in _blobCache) {
+            try { URL.revokeObjectURL(_blobCache[key]); } catch (e) {}
+        }
+        _blobCache = {};
+    });
+
     function loadStickerImage(img, url, fallbackName) {
         // 已有缓存直接用
         if (_blobCache[url]) {
             img.src = _blobCache[url];
             return;
         }
+        // 构建失败占位元素（可点击查看详情）
+        var _fallbackEl = null;
+        function _makeFallback() {
+            if (_fallbackEl) return;
+            if (!img.parentNode) return;
+            // 根据上下文选择样式：选择面板格子 / 管理列表 / 聊天消息
+            var inMgmt = img.parentNode.closest('#lvStickerManageList');
+            var inPicker = !inMgmt && img.parentNode.closest('#lvStickerPicker');
+            _fallbackEl = document.createElement('span');
+            if (inMgmt) {
+                // 管理列表：填满宽度，匹配 38px 缩略图高度
+                _fallbackEl.style.cssText = 'display:flex;align-items:center;justify-content:center;' +
+                    'width:100%;height:38px;font-size:18px;color:var(--stk-label);';
+                _fallbackEl.textContent = '图片失效';
+            } else if (inPicker) {
+                // 选择面板：50×50 居中图标
+                _fallbackEl.style.cssText = 'display:flex;align-items:center;justify-content:center;' +
+                    'width:50px;height:50px;font-size:22px;';
+                _fallbackEl.textContent = '图片失效';
+            } else {
+                // 聊天消息：按钮样式
+                _fallbackEl.className = 'lv-chat-sticker-audio-btn';
+                _fallbackEl.textContent = '图片失效 ' + (fallbackName || '贴纸');
+            }
+            _fallbackEl.title = fallbackName || '';
+            _fallbackEl.setAttribute('data-lv-url', url);
+            _fallbackEl.setAttribute('data-lv-name', fallbackName || '');
+            img.parentNode.replaceChild(_fallbackEl, img);
+        }
+        function _restoreImage(blobUrl) {
+            if (!_fallbackEl || !_fallbackEl.parentNode) return;
+            var newImg = document.createElement('img');
+            newImg.className = img.className;
+            newImg.alt = img.alt;
+            newImg.title = img.title;
+            for (var a = 0; a < img.attributes.length; a++) {
+                var attr = img.attributes[a];
+                if (attr.name !== 'src' && attr.name !== 'class') {
+                    newImg.setAttribute(attr.name, attr.value);
+                }
+            }
+            newImg.src = blobUrl;
+            _fallbackEl.parentNode.replaceChild(newImg, _fallbackEl);
+        }
         // 先尝试直连
         img.src = url;
-        var _triedGm = false;
         img.addEventListener('error', function () {
-            if (_triedGm) return;
-            _triedGm = true;
-            if (typeof GM_xmlhttpRequest !== 'function') {
-                // 没有 GM 权限，显示文字占位
-                if (img.parentNode && fallbackName) {
-                    img.parentNode.replaceChild(document.createTextNode('[表情:' + fallbackName + ']'), img);
-                }
-                return;
-            }
+            // 直连失败，先显示占位
+            _makeFallback();
+            // 后台尝试 GM 代理
+            if (typeof GM_xmlhttpRequest !== 'function') return;
             GM_xmlhttpRequest({
                 method: 'GET',
                 url: url,
                 responseType: 'blob',
                 timeout: 15000,
                 onload: function (resp) {
-                    if (resp.response) {
+                    if (resp.response && resp.response.type && resp.response.type.indexOf('image') === 0) {
                         var blobUrl = URL.createObjectURL(resp.response);
                         _blobCache[url] = blobUrl;
-                        img.src = blobUrl;
-                    } else if (img.parentNode && fallbackName) {
-                        img.parentNode.replaceChild(document.createTextNode('[表情:' + fallbackName + ']'), img);
+                        _restoreImage(blobUrl);
                     }
                 },
-                onerror: function () {
-                    if (img.parentNode && fallbackName) {
-                        img.parentNode.replaceChild(document.createTextNode('[表情:' + fallbackName + ']'), img);
-                    }
-                },
-                ontimeout: function () {
-                    if (img.parentNode && fallbackName) {
-                        img.parentNode.replaceChild(document.createTextNode('[表情:' + fallbackName + ']'), img);
-                    }
-                }
+                onerror: function () {},
+                ontimeout: function () {}
             });
         });
         // 直连成功的话 error 不会触发，完美
     }
 
-    // ===================== 表情数据（localStorage） =====================
+    // ===================== 贴纸数据（localStorage） =====================
     var STICKER_KEY = 'lvStickerList';
     var STICKER_SIZE_KEY = 'lvStickerSize';
 
@@ -449,7 +495,7 @@
 
     function exportStickerList() {
         var list = getStickerList();
-        if (!list.length) { showToastMsg('表情列表为空，无法导出'); return ''; }
+        if (!list.length) { showToastMsg('贴纸列表为空，无法导出'); return ''; }
         var text = JSON.stringify(list, null, 2);
         var blob = new Blob([text], { type: 'application/json' });
         var url = URL.createObjectURL(blob);
@@ -463,7 +509,7 @@
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-        showToastMsg('表情列表已导出');
+        showToastMsg('贴纸列表已导出');
         return text;
     }
 
@@ -493,7 +539,7 @@
                     added++;
                 }
                 saveStickerList(list);
-                showToastMsg('导入了 ' + added + ' 个表情');
+                showToastMsg('导入了 ' + added + ' 个贴纸');
                 return list;
             }
 
@@ -551,13 +597,27 @@
         }
 
         saveStickerList(list);
-        showToastMsg('导入了 ' + added + ' 个表情');
+        showToastMsg('导入了 ' + added + ' 个贴纸');
         return list;
     }
 
-    // 判断是否为文本类表情（非 http URL）
+    // 判断是否为文本类贴纸（非 http URL）
+    // 判断是否纯 emoji（1-4 个 emoji 字符，含变体选择器和 ZWJ）
+    function isEmojiOnly(str) {
+        if (!str) return false;
+        var chars = Array.from(str).filter(function (c) { return !/\s/.test(c); });
+        if (chars.length > 4) return false;
+        return chars.every(function (c) { return /\p{Emoji}/u.test(c); });
+    }
+
     function isTextSticker(url) {
-        return url && url.indexOf('http') !== 0;
+        if (!url) return true;
+        // 远程/本地链接 → 不是文字贴纸
+        if (/^(https?|file|ftp):\/\//i.test(url)) return false;
+        if (/^[A-Za-z]:[\\/]/.test(url)) return false;
+        if (/^\\\\/.test(url)) return false;
+        if (/^\/[^\/]/.test(url)) return false;
+        return true;
     }
 
     // 判断是否为视频 URL
@@ -576,6 +636,19 @@
         return false;
     }
 
+    // 判断是否为浏览器可渲染的图片 URL（非视频/音频/其他文件）
+    function isImageUrl(url) {
+        if (!url) return false;
+        if (isVideoUrl(url)) return false;
+        if (isAudioUrl(url)) return false;
+        // 有明确非图片扩展名 → 不是图片
+        if (/\.(pdf|docx?|xlsx?|pptx?|zip|rar|7z|tar|gz|exe|apk|dmg|iso|txt|csv|json|xml|html?|css|js|py|java|cpp?|h|php|go|rs|ts|jsx|tsx|vue|svelte)(\?|#|$)/i.test(url)) return false;
+        // 远程 URL（http/https/ftp/file）→ 只要不是明确非图片就算图片
+        if (/^(https?|file|ftp):\/\//i.test(url)) return true;
+        if (/\.(png|jpe?g|gif|webp|svg|bmp|ico|avif|tiff?)(\?|#|$)/i.test(url)) return true;
+        return false;
+    }
+
     // 视频/音频：直连加载
     function loadStickerMedia(el, url, name) {
         el.src = url;
@@ -583,7 +656,7 @@
 
     function getStickerSize() {
         try { var v = parseInt(localStorage.getItem(STICKER_SIZE_KEY), 10); if (v >= 5 && v <= 100) return v; } catch (e) {}
-        return 50; // 默认 50%
+        return 55; // 默认 55%
     }
 
     function setStickerSize(pct) {
@@ -611,16 +684,23 @@
         }
     }
 
+    var _toastContainer = null;
     function showToastMsg(msg) {
+        if (!_toastContainer) {
+            _toastContainer = document.createElement('div');
+            _toastContainer.id = 'lvToastContainer';
+            _toastContainer.style.cssText = 'position:fixed;top:60px;left:50%;transform:translateX(-50%);z-index:2147483647;display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none;';
+            document.body.appendChild(_toastContainer);
+        }
         var toast = document.createElement('div');
         toast.className = 'lv-toast';
         toast.textContent = msg;
-        document.body.appendChild(toast);
-        setTimeout(function () { toast.style.opacity = '0'; toast.style.transform = 'translateX(-50%) translateY(-8px)'; }, 1600);
+        _toastContainer.appendChild(toast);
+        setTimeout(function () { toast.style.opacity = '0'; toast.style.transform = 'translateY(-8px)'; }, 1600);
         setTimeout(function () { toast.remove(); }, 2100);
     }
 
-    // ===================== 表情选择面板 =====================
+    // ===================== 贴纸选择面板 =====================
     var pickerVisible = false;
     var pickerEl = null;
     var manageVisible = false;
@@ -640,8 +720,8 @@
         if (!pickerEl) buildPicker();
         var list = getStickerList();
 
-        // --- 表情网格 ---
-        var html = '<div style="padding:10px 8px 4px;">';
+        // --- 贴纸网格 ---
+        var html = '<div id="lvStickerScroll" style="padding:10px 8px 4px;flex:1;overflow-y:auto;min-height:0;">';
         if (!list.length) {
             html += '<div style="text-align:center;color:var(--stk-label);padding:24px 8px;font-size:12px;font-family:var(--stk-font);">还没有贴纸<br><span style="font-size:10px;">点击下方「管理」添加</span></div>';
         } else {
@@ -649,8 +729,9 @@
             for (var i = 0; i < list.length; i++) {
                 var e = list[i];
                 if (isTextSticker(e.url)) {
+                    var textSize = isEmojiOnly(e.url) ? 'font-size:22px;' : 'font-size:14px;';
                     html += '<div data-sticker-id="' + e.id + '" class="lv-sticker-item">' +
-                        '<span class="lv-sticker-text">' + escapeHtml(e.url) + '</span>' +
+                        '<span class="lv-sticker-text" style="' + textSize + '">' + escapeHtml(e.url) + '</span>' +
                         '<span class="lv-sticker-name">' + escapeHtml(e.name || e.url) + '</span>' +
                         '</div>';
                 } else if (isVideoUrl(e.url)) {
@@ -664,9 +745,14 @@
                         '<span class="lv-sticker-audio-icon">🔊</span>' +
                         '<span class="lv-sticker-name">' + escapeHtml(e.name) + '</span>' +
                         '</div>';
-                } else {
+                } else if (isImageUrl(e.url)) {
                     html += '<div data-sticker-id="' + e.id + '" class="lv-sticker-item">' +
                         '<span class="lv-sticker-img-slot" data-eurl="' + escapeHtml(e.url) + '" data-ename="' + escapeHtml(e.name) + '"></span>' +
+                        '<span class="lv-sticker-name">' + escapeHtml(e.name) + '</span>' +
+                        '</div>';
+                } else {
+                    html += '<div data-sticker-id="' + e.id + '" class="lv-sticker-item">' +
+                        '<span class="lv-sticker-text">📄</span>' +
                         '<span class="lv-sticker-name">' + escapeHtml(e.name) + '</span>' +
                         '</div>';
                 }
@@ -676,16 +762,14 @@
         html += '</div>';
 
         // --- 管理区 ---
-        html += '<div class="lv-mgmt-divider">' +
-            '<button id="lvStickerToggleManage" class="lv-mgmt-toggle">管理</button>' +
-            '<div id="lvStickerManagePanel" class="lv-mgmt-panel" style="display:none;">' +
+        html += '<div id="lvStickerManagePanel" class="lv-mgmt-panel" style="display:none;flex:1;overflow-y:auto;min-height:0;">' +
             '<div class="lv-mgmt-row">' +
             '<label>名称</label>' +
             '<input id="lvStickerName" type="text" placeholder="输入贴纸名称">' +
             '</div>' +
             '<div class="lv-mgmt-row">' +
             '<label>URL</label>' +
-            '<input id="lvStickerUrl" type="text" placeholder="https://...">' +
+            '<input id="lvStickerUrl" type="text" placeholder="图片/视频/音频链接, 文本/emoji">' +
             '</div>' +
             '<div class="lv-mgmt-row-actions">' +
             '<button id="lvStickerAddBtn" class="lv-btn lv-btn-add" style="flex:1;">添加</button>' +
@@ -696,14 +780,16 @@
             '<input id="lvStickerImportInput" type="text" placeholder="粘贴 JSON" style="flex:1;height:26px;font-size:11px;display:none;background:var(--stk-input-bg);border:1px solid var(--stk-input-border);border-radius:6px;color:var(--stk-text);padding:0 8px;font-family:var(--stk-font);outline:none;">' +
             '</div>' +
             '<div class="lv-mgmt-row">' +
-            '<div class="lv-size-label"><span>表情大小</span><span id="lvStickerSizeVal">' + getStickerSize() + '%</span></div>' +
+            '<div class="lv-size-label"><span>贴纸大小</span><span id="lvStickerSizeVal">' + getStickerSize() + '%</span></div>' +
             '<input id="lvStickerSizeSlider" class="lv-size-slider" type="range" min="5" max="100" value="' + getStickerSize() + '">' +
             '</div>' +
-            '<div id="lvStickerManageList" style="max-height:220px;overflow-y:auto;"></div>' +
+            '<div id="lvStickerManageList" style="flex:1;"></div>' +
             '<div style="margin-top:8px;font-size:10px;text-align:center;font-family:var(--stk-font);color:var(--stk-label);">' +
-            '链接: <a href="https://github.com/sewolonX/lingverse-chat-sticker" target="_blank" style="color:var(--stk-accent);text-decoration:none;">lingverse-chat-sticker</a>' +
+            '>///< : <a href="https://github.com/sewolonX/lingverse-chat-sticker" target="_blank" style="color:var(--stk-accent);text-decoration:none;">lingverse-chat-sticker</a>' +
             '</div>' +
             '</div>' +
+            '<div class="lv-mgmt-divider">' +
+            '<button id="lvStickerToggleManage" class="lv-mgmt-toggle">管理</button>' +
             '</div>';
 
         pickerEl.innerHTML = html;
@@ -713,7 +799,7 @@
         for (var s = 0; s < slots.length; s++) {
             (function (slot) {
                 var url = slot.getAttribute('data-eurl');
-                var name = slot.getAttribute('data-ename') || '表情';
+                var name = slot.getAttribute('data-ename') || '贴纸';
                 var img = document.createElement('img');
                 img.className = 'lv-sticker-img';
                 img.alt = name;
@@ -727,7 +813,7 @@
         for (var vs = 0; vs < videoSlots.length; vs++) {
             (function (slot) {
                 var url = slot.getAttribute('data-eurl');
-                var name = slot.getAttribute('data-ename') || '表情';
+                var name = slot.getAttribute('data-ename') || '贴纸';
                 var vid = document.createElement('video');
                 vid.className = 'lv-sticker-video';
                 vid.src = url;
@@ -753,12 +839,14 @@
         // Toggle management
         var toggleBtn = document.getElementById('lvStickerToggleManage');
         var managePanel = document.getElementById('lvStickerManagePanel');
+        var scrollArea = document.getElementById('lvStickerScroll');
         if (toggleBtn && managePanel) {
             toggleBtn.onclick = function (e) {
                 e.stopPropagation();
                 manageVisible = !manageVisible;
                 managePanel.style.display = manageVisible ? '' : 'none';
-                toggleBtn.textContent = manageVisible ? '收起管理' : '管理';
+                if (scrollArea) scrollArea.style.display = manageVisible ? 'none' : '';
+                toggleBtn.textContent = manageVisible ? '退出管理' : '管理';
                 if (manageVisible) renderManageList();
             };
         }
@@ -772,7 +860,8 @@
                 e.stopPropagation();
                 var name = nameInput.value.trim();
                 var url = urlInput.value.trim();
-                if (!name) { showToastMsg('请输入表情名'); return; }
+                if (!name) { showToastMsg('请输入贴纸名'); return; }
+                if (/[:\[\]]/.test(name)) { showToastMsg('名称不能包含 : [ ] 字符'); return; }
                 if (!url) { showToastMsg('请输入图片URL'); return; }
                 addSticker(name, url);
                 nameInput.value = '';
@@ -797,7 +886,7 @@
         if (importBtn && importInput) {
             function doImport() {
                 var val = importInput.value.trim();
-                if (!val) { showToastMsg('请粘贴表情JSON'); return; }
+                if (!val) { showToastMsg('请粘贴贴纸JSON'); return; }
                 var result = importStickerList(val);
                 if (result) { importInput.value = ''; importInput.style.display = 'none'; importBtn.textContent = '导入'; renderPicker(); }
             }
@@ -824,7 +913,7 @@
         // Render management list
         renderManageList();
 
-        // --- 表情大小滑块事件 ---
+        // --- 贴纸大小滑块事件 ---
         var sizeSlider = document.getElementById('lvStickerSizeSlider');
         var sizeVal = document.getElementById('lvStickerSizeVal');
         if (sizeSlider && sizeVal) {
@@ -840,8 +929,10 @@
         if (manageVisible) {
             var mp = document.getElementById('lvStickerManagePanel');
             var tb = document.getElementById('lvStickerToggleManage');
+            var sa = document.getElementById('lvStickerScroll');
             if (mp) mp.style.display = '';
-            if (tb) tb.textContent = '收起管理';
+            if (sa) sa.style.display = 'none';
+            if (tb) tb.textContent = '退出管理';
         }
     }
 
@@ -857,8 +948,9 @@
         for (var i = 0; i < list.length; i++) {
             var e = list[i];
             if (isTextSticker(e.url)) {
+                var mtSize = isEmojiOnly(e.url) ? 'font-size:16px;' : 'font-size:11px;';
                 html += '<div class="lv-mgmt-item">' +
-                    '<span class="lv-mgmt-text">' + escapeHtml(e.url) + '</span>' +
+                    '<span class="lv-mgmt-text" style="' + mtSize + '">' + escapeHtml(e.url) + '</span>' +
                     '<div class="lv-mgmt-name">' + escapeHtml(e.name || e.url) + '</div>' +
                     '<button data-del="' + e.id + '" class="lv-mgmt-del" title="删除">×</button>' +
                     '</div>';
@@ -874,9 +966,15 @@
                     '<div class="lv-mgmt-name">' + escapeHtml(e.name) + '</div>' +
                     '<button data-del="' + e.id + '" class="lv-mgmt-del" title="删除">×</button>' +
                     '</div>';
-            } else {
+            } else if (isImageUrl(e.url)) {
                 html += '<div class="lv-mgmt-item">' +
                     '<span class="lv-mgmt-img-slot" data-eurl="' + escapeHtml(e.url) + '" data-ename="' + escapeHtml(e.name) + '"></span>' +
+                    '<div class="lv-mgmt-name">' + escapeHtml(e.name) + '</div>' +
+                    '<button data-del="' + e.id + '" class="lv-mgmt-del" title="删除">×</button>' +
+                    '</div>';
+            } else {
+                html += '<div class="lv-mgmt-item">' +
+                    '<span class="lv-mgmt-text">📄</span>' +
                     '<div class="lv-mgmt-name">' + escapeHtml(e.name) + '</div>' +
                     '<button data-del="' + e.id + '" class="lv-mgmt-del" title="删除">×</button>' +
                     '</div>';
@@ -890,7 +988,7 @@
         for (var s = 0; s < slots.length; s++) {
             (function (slot) {
                 var url = slot.getAttribute('data-eurl');
-                var name = slot.getAttribute('data-ename') || '表情';
+                var name = slot.getAttribute('data-ename') || '贴纸';
                 var img = document.createElement('img');
                 img.className = 'lv-mgmt-thumb';
                 img.alt = name;
@@ -956,18 +1054,54 @@
         } catch (e) { return ''; }
     }
     function b64Decode(b64) {
+        // 直链/路径：直接返回，不尝试 base64 解码
+        if (/^(https?|file|ftp):\/\//i.test(b64)) return b64;
+        if (/^[A-Za-z]:[\\/]/.test(b64)) return b64;
+        if (/^\\\\/.test(b64)) return b64;
+        if (/^\//.test(b64)) return b64;
+        // IP / 域名 / 有扩展名或含 . 的路径
+        if (/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}([/?#]|$)/.test(b64)) return b64;
+        if (/\./.test(b64)) return b64;
         try {
-            var bin = atob(b64);
+            var cleaned = b64.replace(/[^A-Za-z0-9+/=]/g, ''); // 剔除 base64 非法字符
+            if (!cleaned) return '';
+            var bin = atob(cleaned);
             var bytes = new Uint8Array(bin.length);
             for (var i = 0; i < bin.length; i++) {
                 bytes[i] = bin.charCodeAt(i);
             }
             return new TextDecoder().decode(bytes);
-        } catch (e) { return ''; }
+        } catch (e) {
+            // base64 解码失败，当作直链/路径返回
+            if (b64 && /[\/\\:.]/.test(b64)) return b64;
+            return '';
+        }
+    }
+
+    // 选择最优编码：优先 base64（安全），超 200 字限制时降级为原始 URL
+    function bestPayload(url, name) {
+        var b64 = b64Encode(url);
+        if (!b64) return '';
+        var b64Msg = '[E:' + b64 + ':' + name + ']';
+        if (b64Msg.length <= 200) return b64;           // base64 能放下，优先用
+        if (/^https?:\/\//i.test(url)) {
+            var rawMsg = '[E:' + url + ':' + name + ']';
+            if (rawMsg.length <= 200) {                  // 原始 URL 能放下，降级
+                showToastMsg('URL 过长，base64 编码后 ' + b64Msg.length + ' 字超限，已改用原始链接（' + rawMsg.length + ' 字）');
+                return url;
+            }
+        }
+        showToastMsg('URL 过长，base64 编码后 ' + b64Msg.length + ' 字，原始链接也无法放入 200 字限制');
+        return b64; // 都放不下，还是用 base64（至少安全性好）
     }
 
     // 找到当前可见的聊天输入框并填入文字
-    function sendToChatInput(text) {
+    // opts.append: true 时追加到现有内容末尾，false 时覆盖
+    // opts.send:    true 时自动发送，false 时只填入不发送
+    function sendToChatInput(text, opts) {
+        opts = opts || {};
+        var append = opts.append !== false;  // 默认追加
+        var send = opts.send !== false;      // 默认发送
         var sideInput = document.getElementById('chatInput');
         var inlineInput = document.getElementById('inlineChatInput');
         var input = null;
@@ -979,8 +1113,18 @@
             input = inlineInput || sideInput;
         }
         if (!input) return false;
-        input.value = text;
-        if (typeof window.sendChat === 'function') {
+        var combined;
+        if (append && input.value) {
+            combined = input.value + ' ' + text;
+        } else {
+            combined = text;
+        }
+        if (combined.length > 200) {
+            showToastMsg('内容超过200字限制（已输入' + input.value.length + '字 + 贴纸' + text.length + '字），请缩短后再插入');
+            return false;
+        }
+        input.value = combined;
+        if (send && typeof window.sendChat === 'function') {
             try { window.sendChat(); } catch (e) {}
         }
         return true;
@@ -992,30 +1136,60 @@
         for (var i = 0; i < list.length; i++) { if (list[i].id === id) { sticker = list[i]; break; } }
         if (!sticker) return;
 
-        // 文本类表情直接插入文字
+        // 文本类贴纸：追加到输入框末尾，不自动发送（用户可继续编辑）
         if (isTextSticker(sticker.url)) {
-            sendToChatInput(sticker.url);
+            if (sendToChatInput(sticker.url, { append: true, send: false })) {
+                showToastMsg('已插入文字「' + (sticker.name || sticker.url) + '」（可继续编辑）');
+            }
             return;
         }
 
-        // 格式: [E:base64(url):name]
-        var encoded = b64Encode(sticker.url);
-        if (!encoded) return;
-        sendToChatInput('[E:' + encoded + ':' + sticker.name + ']');
+        // 视频类贴纸
+        if (isVideoUrl(sticker.url)) {
+            var payloadV = bestPayload(sticker.url, sticker.name);
+            if (!payloadV) return;
+            if (sendToChatInput('[E:' + payloadV + ':' + sticker.name + ']', { append: true, send: true })) {
+                showToastMsg('已插入视频「' + sticker.name + '」到聊天框');
+            }
+            return;
+        }
+
+        // 音频类贴纸
+        if (isAudioUrl(sticker.url)) {
+            var payloadA = bestPayload(sticker.url, sticker.name);
+            if (!payloadA) return;
+            if (sendToChatInput('[E:' + payloadA + ':' + sticker.name + ']', { append: true, send: true })) {
+                showToastMsg('已插入音频「' + sticker.name + '」到聊天框');
+            }
+            return;
+        }
+
+        // 图片 / 其他媒体贴纸：追加到已有内容后面一起发出
+        var payload = bestPayload(sticker.url, sticker.name);
+        if (!payload) return;
+        if (sendToChatInput('[E:' + payload + ':' + sticker.name + ']', { append: true, send: true })) {
+            showToastMsg('已插入贴纸「' + sticker.name + '」到聊天框');
+        }
     }
 
     function showPicker(anchorEl) {
         buildPicker();
         renderPicker();
         var rect = anchorEl.getBoundingClientRect();
-        var top = rect.top - 420;
-        if (top < 10) top = rect.bottom + 10;
+        // 始终在上方弹出：计算上方可用空间，空间不足时压缩面板高度
+        var gap = 10; // 面板与按钮间距
+        var topMargin = 10; // 距视口顶部最小距离
+        var spaceAbove = rect.top - topMargin - gap; // 面板在上方可用的最大高度
+        var panelMaxHeight = Math.min(400, Math.max(120, spaceAbove)); // 压缩到可用空间，最少120px
+        var top = rect.top - gap - panelMaxHeight;
+        if (top < topMargin) top = topMargin;
+        pickerEl.style.maxHeight = panelMaxHeight + 'px';
+        pickerEl.style.top = top + 'px';
         var left = rect.left;
         if (left + 280 > window.innerWidth) left = window.innerWidth - 280;
         if (left < 8) left = 8;
-        pickerEl.style.top = top + 'px';
         pickerEl.style.left = left + 'px';
-        pickerEl.style.display = 'block';
+        pickerEl.style.display = 'flex';
         pickerVisible = true;
         setTimeout(function () {
             document.addEventListener('click', hidePickerOnOutside, true);
@@ -1031,21 +1205,25 @@
 
     function hidePickerOnOutside(e) {
         if (!pickerVisible) return;
-        if (pickerEl && !pickerEl.contains(e.target)) {
-            // 检查是否点在了详情弹窗上
-            if (detailOverlay && detailOverlay.style.display !== 'none' && detailOverlay.contains(e.target)) return;
-            // 检查是否点在了表情按钮上
-            var clickedOnBtn = false;
-            var el = e.target;
-            while (el) {
-                if (el.id === 'lvStickerChatBtn') { clickedOnBtn = true; break; }
-                el = el.parentElement;
-            }
-            if (!clickedOnBtn) hidePicker();
+        // 点在面板内部或详情弹窗上 → 不处理
+        if (pickerEl && pickerEl.contains(e.target)) return;
+        if (detailOverlay && detailOverlay.style.display !== 'none' && detailOverlay.contains(e.target)) return;
+        // 管理面板展开时阻止关闭，提示用户先收起
+        if (manageVisible) {
+            showToastMsg('请先点击「退出管理」再关闭面板');
+            return;
         }
+        // 检查是否点在了贴纸按钮上
+        var clickedOnBtn = false;
+        var el = e.target;
+        while (el) {
+            if (el.id === 'lvStickerChatBtn') { clickedOnBtn = true; break; }
+            el = el.parentElement;
+        }
+        if (!clickedOnBtn) hidePicker();
     }
 
-    // ===================== 聊天表情按钮 =====================
+    // ===================== 聊天贴纸按钮 =====================
     var SVG_ICON = '<svg viewBox="0 0 1287.6 1287.6" fill="none" aria-hidden="true" style="width:20px;height:20px;vertical-align:middle;pointer-events:none;"><path d="M1068.3 202.8 Q1128.3 231.8 1157.3 291.8 Q1173.3 321.8 1176.8 363.3 Q1180.3 404.8 1180.3 497.8 V789.8 Q1180.3 883.8 1176.8 925.3 Q1173.3 966.8 1157.3 995.8 Q1128.3 1055.8 1068.3 1084.8 Q1038.3 1100.8 997.3 1104.3 Q956.3 1107.8 862.3 1107.8 H425.3 Q332.3 1107.8 290.8 1104.3 Q249.3 1100.8 219.3 1084.8 Q159.3 1055.8 130.3 995.8 Q114.3 966.8 110.8 925.3 Q107.3 883.8 107.3 789.8 V497.8 Q107.3 404.8 110.8 363.3 Q114.3 321.8 130.3 291.8 Q159.3 231.8 219.3 202.8 Q249.3 186.8 290.8 183.3 Q332.3 179.8 425.3 179.8 H862.3 Q956.3 179.8 997.3 183.3 Q1038.3 186.8 1068.3 202.8 Z M374.3 300.8 Q330.3 300.8 311.3 302.3 Q292.3 303.8 279.3 310.8 Q257.3 321.8 245.3 340.8 L399.3 510.8 Q404.3 515.8 409.3 516.3 Q414.3 516.8 420.3 510.8 L465.3 463.8 L476.3 451.8 Q496.3 430.8 507.3 421.3 Q518.3 411.8 530.3 408.8 Q557.3 401.8 584.3 408.8 Q597.3 412.8 610.3 424.3 Q623.3 435.8 649.3 463.8 L830.3 654.8 Q835.3 660.8 841.3 660.8 Q847.3 660.8 852.3 655.8 L1062.3 424.8 Q1061.3 396.8 1059.3 380.8 Q1057.3 364.8 1051.3 353.8 Q1036.3 325.8 1009.3 310.8 Q995.3 303.8 973.8 302.3 Q952.3 300.8 899.3 300.8 H388.3 Z M237.3 934.8 Q244.3 947.8 254.8 958.8 Q265.3 969.8 278.3 976.8 Q293.3 984.8 314.8 986.3 Q336.3 987.8 388.3 987.8 H899.3 Q952.3 987.8 973.8 986.3 Q995.3 984.8 1009.3 976.8 Q1036.3 962.8 1051.3 933.8 Q1059.3 919.8 1060.8 898.8 Q1062.3 877.8 1062.3 824.8 V585.8 L934.3 726.8 Q905.3 757.8 893.8 768.3 Q882.3 778.8 869.3 782.8 Q842.3 791.8 815.3 782.8 Q804.3 779.8 794.3 771.8 Q784.3 763.8 760.3 739.8 L749.3 728.8 L566.3 535.8 Q562.3 531.8 556.8 531.8 Q551.3 531.8 547.3 535.8 L502.3 583.8 Q475.3 612.8 462.3 624.3 Q449.3 635.8 436.3 638.8 Q409.3 647.8 382.3 638.8 Q369.3 634.8 357.8 624.3 Q346.3 613.8 317.3 582.8 L226.3 480.8 V824.8 Q226.3 877.8 227.8 899.3 Q229.3 920.8 237.3 934.8 Z M493.3 828.8 Q493.3 866.8 466.3 893.8 Q439.3 920.8 401.3 920.8 Q363.3 920.8 335.8 893.8 Q308.3 866.8 308.3 828.8 Q308.3 790.8 335.8 763.3 Q363.3 735.8 401.3 735.8 Q439.3 735.8 466.3 763.3 Q493.3 790.8 493.3 828.8 Z" transform="matrix(1 0 0 -1 0 1287.6)" fill="currentColor" fill-rule="nonzero" clip-rule="nonzero"></path></svg>';
 
     function injectStickerButtons() {
@@ -1065,7 +1243,7 @@
             var btn = document.createElement('button');
             btn.type = 'button';
             btn.id = 'lvStickerChatBtn';
-            btn.title = '表情';
+            btn.title = '贴纸';
             btn.setAttribute('data-lv-sticker', 'chat-btn');
             btn.innerHTML = SVG_ICON;
 
@@ -1088,7 +1266,7 @@
     }
 
     // ===================== 消息渲染器 =====================
-    var STICKER_RE = /\[E:([A-Za-z0-9+\/=]+):([^\]]*)\]/g;
+    var STICKER_RE = /\[E:([\s\S]+?):([^:\]]*)\]/g;
 
     function renderMsgText(el) {
         if (!el) return;
@@ -1097,6 +1275,7 @@
         if (el._lvStickerLastText === text) return;
         el._lvStickerLastText = text;
         if (text.indexOf('[E:') === -1) return;
+        el._lvStickerRawText = text; // 保存原始数据，供详情弹窗展示
 
         // 用 DOM API 构建替换结果，避免字符串拼接 HTML 的坑
         var frag = document.createDocumentFragment();
@@ -1111,46 +1290,42 @@
             lastIdx = STICKER_RE.lastIndex;
 
             var url = b64Decode(m[1]);
-            var name = m[2] || '表情';
+            var name = m[2] || '贴纸';
             if (url) {
                 if (isVideoUrl(url)) {
-                    var vidBtn = document.createElement('a');
+                    var vidBtn = document.createElement('span');
                     vidBtn.className = 'lv-chat-sticker-video-btn';
-                    vidBtn.href = url;
-                    vidBtn.target = '_blank';
-                    vidBtn.rel = 'noopener';
                     vidBtn.title = name;
                     vidBtn.textContent = '▶ ' + (name || '视频');
                     vidBtn.setAttribute('data-lv-url', url);
                     vidBtn.setAttribute('data-lv-name', name);
-                    vidBtn.addEventListener('click', function (e) {
-                        e.stopPropagation();
-                    });
                     frag.appendChild(vidBtn);
                 } else if (isAudioUrl(url)) {
-                    var audBtn = document.createElement('a');
+                    var audBtn = document.createElement('span');
                     audBtn.className = 'lv-chat-sticker-audio-btn';
-                    audBtn.href = url;
-                    audBtn.target = '_blank';
-                    audBtn.rel = 'noopener';
                     audBtn.title = name;
                     audBtn.textContent = '🔊 ' + (name || '音频');
                     audBtn.setAttribute('data-lv-url', url);
                     audBtn.setAttribute('data-lv-name', name);
-                    audBtn.addEventListener('click', function (e) {
-                        e.stopPropagation();
-                    });
                     frag.appendChild(audBtn);
-                } else {
+                } else if (isImageUrl(url)) {
                     var img = document.createElement('img');
                     img.className = 'lv-chat-sticker';
-                    img.alt = '[表情:' + name + ']';
+                    img.alt = '[贴纸:' + name + ']';
                     img.title = name;
                     img.setAttribute('data-lv-sticker-img', '1');
                     img.setAttribute('data-lv-url', url);
                     img.setAttribute('data-lv-name', name);
                     loadStickerImage(img, url, name);
                     frag.appendChild(img);
+                } else {
+                    var fileBtn = document.createElement('span');
+                    fileBtn.className = 'lv-chat-sticker-audio-btn';
+                    fileBtn.title = name;
+                    fileBtn.textContent = '📄 ' + (name || '文件');
+                    fileBtn.setAttribute('data-lv-url', url);
+                    fileBtn.setAttribute('data-lv-name', name);
+                    frag.appendChild(fileBtn);
                 }
             } else {
                 // 解码失败，保留原文
@@ -1163,9 +1338,16 @@
         }
 
         // 有替换才更新 DOM
+        // 检查是否有非文本子节点（宿主页面可能绑定了事件），有则跳过以免破坏交互
         if (frag.childNodes.length > 0) {
-            el.textContent = '';
-            el.appendChild(frag);
+            var hasElementChild = false;
+            for (var child = el.firstChild; child; child = child.nextSibling) {
+                if (child.nodeType === 1) { hasElementChild = true; break; }
+            }
+            if (!hasElementChild) {
+                el.textContent = '';
+                el.appendChild(frag);
+            }
         }
     }
 
@@ -1181,7 +1363,7 @@
         }
     }
 
-    // ===================== 表情详情弹窗 =====================
+    // ===================== 贴纸详情弹窗 =====================
     var detailOverlay = null;
     var detailImg = null, detailImgWrap = null, detailZoomSlider = null; // DOM 引用（跨函数共享）
     var detailZoomPct = 100; // 弹窗内默认原始大小
@@ -1207,37 +1389,42 @@
 
     function showStickerDetail(opts) {
         var url = opts.url;
-        var name = opts.name || '表情';
-        var stickerId = opts.id; // 有 id = 用户自己的表情
+        var name = opts.name || '贴纸';
+        var rawText = opts.rawText || '';
+        var stickerId = opts.id; // 有 id = 用户自己的贴纸
         var isImage = url && url.indexOf('http') === 0;
 
         buildDetailOverlay();
         detailZoomPct = 100;
 
-        // 预览区：图片 / 视频 / 音频 / 文字
+        // 预览区：图片 / 视频 / 音频 / 文件 / 文字
         var isVideo = isImage && isVideoUrl(url);
         var isAudio = isImage && isAudioUrl(url);
+        var isImg = isImageUrl(url);
         var previewHtml;
         if (isVideo) {
             previewHtml = '<div style="text-align:center;padding:30px 0;">' +
                 '<div style="font-size:64px;margin-bottom:12px;">▶</div>' +
-                '<div style="font-size:13px;font-family:var(--stk-font);color:var(--stk-text);margin-bottom:10px;">' + escapeHtml(name) + '</div>' +
-                '<a class="lv-btn lv-btn-add" href="' + url.replace(/"/g, '&quot;') + '" target="_blank" rel="noreferrer" style="display:inline-flex;align-items:center;text-decoration:none;">在浏览器打开</a>' +
+                '<div style="font-size:13px;font-family:var(--stk-font);color:var(--stk-text);">' + escapeHtml(name) + '</div>' +
                 '</div>';
         } else if (isAudio) {
             previewHtml = '<div style="text-align:center;padding:30px 0;">' +
                 '<div style="font-size:64px;margin-bottom:12px;">🎵</div>' +
-                '<div style="font-size:13px;font-family:var(--stk-font);color:var(--stk-text);margin-bottom:10px;">' + escapeHtml(name) + '</div>' +
-                '<a class="lv-btn lv-btn-add" href="' + url.replace(/"/g, '&quot;') + '" target="_blank" rel="noreferrer" style="display:inline-flex;align-items:center;text-decoration:none;">在浏览器打开</a>' +
+                '<div style="font-size:13px;font-family:var(--stk-font);color:var(--stk-text);">' + escapeHtml(name) + '</div>' +
                 '</div>';
-        } else if (isImage) {
+        } else if (isImg) {
             previewHtml = '<img class="lv-detail-img" src="" alt="' + escapeHtml(name) + '">';
+        } else if (isImage) {
+            previewHtml = '<div style="text-align:center;padding:30px 0;">' +
+                '<div style="font-size:64px;margin-bottom:12px;">📄</div>' +
+                '<div style="font-size:13px;font-family:var(--stk-font);color:var(--stk-text);">' + escapeHtml(name) + '</div>' +
+                '</div>';
         } else {
             previewHtml = '<div class="lv-detail-text-preview" style="font-size:48px;line-height:1.3;word-break:break-all;">' + escapeHtml(url) + '</div>';
         }
 
         // 缩放区（仅图片有缩放，视频没有）
-        var zoomHtml = (isImage && !isVideo) ? (
+        var zoomHtml = isImg ? (
             '<div class="lv-detail-zoom">' +
             '<button class="lv-zoom-btn lv-zoom-out" title="缩小">−</button>' +
             '<input class="lv-size-slider lv-detail-zoom-slider" type="range" min="20" max="500" value="' + detailZoomPct + '">' +
@@ -1249,22 +1436,28 @@
         // 操作按钮
         var actionsHtml = '<div class="lv-detail-actions">';
         // 发送按钮（始终显示）
-        actionsHtml += '<button class="lv-btn lv-btn-add" id="lvDetailSendBtn">发送</button>';
-        // 删除按钮（仅自己的表情）
+        actionsHtml += '<button class="lv-btn lv-btn-add" id="lvDetailSendBtn">插入到聊天框</button>';
+        // 删除按钮（仅自己的贴纸）
         if (stickerId) {
             actionsHtml += '<button class="lv-btn" id="lvDetailDelBtn" style="color:var(--stk-danger);border-color:var(--stk-danger);">删除</button>';
         }
+        // 在新标签页打开（远程链接），本地文件则复制路径
+        if (/^(https?|ftp):\/\//i.test(url)) {
+            actionsHtml += '<a class="lv-btn" href="' + url.replace(/"/g, '&quot;') + '" target="_blank" rel="noreferrer" style="display:inline-flex;align-items:center;text-decoration:none;">在新标签页打开</a>';
+        } else if (/^file:\/\//i.test(url)) {
+            actionsHtml += '<button class="lv-btn" id="lvDetailCopyPathBtn" style="display:inline-flex;align-items:center;">复制本地路径</button>';
+        }
         actionsHtml += '</div>';
-        // 添加到我的表情（非自己的图片表情）
+        // 添加到我的贴纸（非自己的图片贴纸）
         if (!stickerId) {
             actionsHtml += '<div class="lv-detail-actions" style="margin-top:6px;">' +
-                '<button class="lv-btn lv-btn-add" id="lvDetailAddBtn" style="flex:1;">添加到我的表情</button>' +
+                '<button class="lv-btn lv-btn-add" id="lvDetailAddBtn" style="flex:1;">添加到我的贴纸</button>' +
                 '</div>';
         }
 
         var html = '<div class="lv-detail-card">' +
             '<div class="lv-detail-header">' +
-            '<span>表情详情</span>' +
+            '<span>贴纸详情</span>' +
             '<button class="lv-detail-close" title="关闭">×</button>' +
             '</div>' +
             '<div class="lv-detail-img-wrap">' + previewHtml + '</div>' +
@@ -1272,6 +1465,7 @@
             '<div class="lv-detail-info">' +
             '<div class="lv-detail-info-row"><span class="lv-detail-label">名称</span><span class="lv-detail-value">' + escapeHtml(name) + '</span></div>' +
             '<div class="lv-detail-info-row"><span class="lv-detail-label">URL</span><span class="lv-detail-value">' + escapeHtml(url) + '</span></div>' +
+            (rawText ? '<div class="lv-detail-info-row"><span class="lv-detail-label">原始</span><span class="lv-detail-value" style="max-height:120px;overflow-y:auto;white-space:pre-wrap;word-break:break-all;font-size:11px;">' + escapeHtml(rawText) + '</span></div>' : '') +
             '</div>' +
             actionsHtml +
             '</div>';
@@ -1279,8 +1473,10 @@
         detailOverlay.innerHTML = html;
         detailOverlay.style.display = '';
 
-        // 加载图片
-        var detailImg = detailOverlay.querySelector('.lv-detail-img');
+        // 加载图片 (使用模块级 detailImg/zoomSlider/imgWrap，避免 var 遮蔽)
+        detailImg = detailOverlay.querySelector('.lv-detail-img');
+        detailZoomSlider = detailOverlay.querySelector('.lv-detail-zoom-slider');
+        detailImgWrap = detailOverlay.querySelector('.lv-detail-img-wrap');
         if (detailImg) {
             detailBaseW = 0; detailBaseH = 0;
             function captureBaseSize() {
@@ -1315,8 +1511,6 @@
         }
 
         // ===== 图片缩放 / 拖拽 / 触屏 =====
-        var zoomSlider = detailOverlay.querySelector('.lv-detail-zoom-slider');
-        var imgWrap = detailOverlay.querySelector('.lv-detail-img-wrap');
 
         function applyTransform() {
             if (!detailImg) return;
@@ -1324,21 +1518,29 @@
             if (detailBaseW === 0) {
                 detailBaseW = detailImg.clientWidth || detailImg.naturalWidth || 200;
             }
-            var w = Math.round(detailBaseW * detailZoomPct / 100);
+            if (detailBaseH === 0) {
+                detailBaseH = detailImg.clientHeight || detailImg.naturalHeight || 200;
+            }
+            var scale = detailZoomPct / 100;
+            var w = Math.round(detailBaseW * scale);
+            var h = Math.round(detailBaseH * scale);
             detailImg.style.width = w + 'px';
+            detailImg.style.height = h + 'px';
+            detailImg.style.minWidth = w + 'px';
+            detailImg.style.minHeight = h + 'px';
             detailImg.style.maxWidth = 'none';
             detailImg.style.maxHeight = 'none';
+            detailImg.style.flexShrink = '0';
             detailImg.style.objectFit = 'fill';
-            detailImg.style.height = 'auto';
             detailImg.style.transform = 'translate(' + detailPanX + 'px,' + detailPanY + 'px)';
-            if (zoomSlider) zoomSlider.value = detailZoomPct;
+            if (detailZoomSlider) detailZoomSlider.value = detailZoomPct;
             var zoomValEl = document.getElementById('lvDetailZoomVal');
             if (zoomValEl) zoomValEl.textContent = detailZoomPct + '%';
-            if (imgWrap) {
+            if (detailImgWrap) {
                 if (detailZoomPct > 100) {
-                    imgWrap.style.cursor = 'grab';
+                    detailImgWrap.style.cursor = 'grab';
                 } else {
-                    imgWrap.style.cursor = 'default';
+                    detailImgWrap.style.cursor = 'default';
                     detailPanX = 0; detailPanY = 0;
                     detailImg.style.transform = '';
                 }
@@ -1351,9 +1553,9 @@
         }
 
         // 滑块
-        if (zoomSlider && detailImg) {
-            zoomSlider.oninput = function () {
-                detailZoomPct = parseInt(zoomSlider.value, 10);
+        if (detailZoomSlider && detailImg) {
+            detailZoomSlider.oninput = function () {
+                detailZoomPct = parseInt(detailZoomSlider.value, 10);
                 resetPan();
             };
         }
@@ -1369,8 +1571,8 @@
         if (zoomIn) zoomIn.onclick = function (e) { e.stopPropagation(); stepZoom(20); };
 
         // 鼠标滚轮缩放
-        if (imgWrap && detailImg) {
-            imgWrap.addEventListener('wheel', function (e) {
+        if (detailImgWrap && detailImg) {
+            detailImgWrap.addEventListener('wheel', function (e) {
                 e.preventDefault();
                 var delta = e.deltaY > 0 ? -10 : 10;
                 detailZoomPct = Math.max(20, Math.min(500, detailZoomPct + delta));
@@ -1379,7 +1581,7 @@
             }, { passive: false });
 
             // 鼠标拖拽
-            imgWrap.addEventListener('mousedown', function (e) {
+            detailImgWrap.addEventListener('mousedown', function (e) {
                 if (detailZoomPct <= 100) return;
                 e.preventDefault();
                 detailDragging = true;
@@ -1387,7 +1589,7 @@
                 detailDragStartY = e.clientY;
                 detailDragPanX = detailPanX;
                 detailDragPanY = detailPanY;
-                imgWrap.classList.add('grabbing');
+                detailImgWrap.classList.add('grabbing');
             });
         }
 
@@ -1403,15 +1605,15 @@
             if (detailDragging) {
                 detailDragging = false;
                 detailJustDragged = true;
-                var iw = detailOverlay.querySelector('.lv-detail-img-wrap');
-                if (iw) iw.classList.remove('grabbing');
+                if (detailImgWrap) detailImgWrap.classList.remove('grabbing');
             }
         };
         document.addEventListener('mouseup', _detailMouseUpFn);
 
         // 触屏：双指缩放 + 单指拖拽
-        if (imgWrap && detailImg) {
-            imgWrap.addEventListener('touchstart', function (e) {
+        if (detailImgWrap && detailImg) {
+            detailImgWrap.addEventListener('touchstart', function (e) {
+                e.preventDefault();
                 detailTouches = {};
                 for (var t = 0; t < e.touches.length; t++) {
                     detailTouches[e.touches[t].identifier] = { x: e.touches[t].clientX, y: e.touches[t].clientY };
@@ -1432,10 +1634,10 @@
                 }
             }, { passive: false });
 
-            imgWrap.addEventListener('touchmove', function (e) {
+            detailImgWrap.addEventListener('touchmove', function (e) {
+                e.preventDefault();
                 var keys = Object.keys(detailTouches);
                 if (keys.length === 2) {
-                    e.preventDefault();
                     // 更新双指位置
                     for (var t = 0; t < e.touches.length; t++) {
                         if (detailTouches[e.touches[t].identifier] !== undefined) {
@@ -1464,8 +1666,8 @@
                 }
             }, { passive: false });
 
-            imgWrap.addEventListener('touchend', function (e) {
-                // 移除离开的手指
+            detailImgWrap.addEventListener('touchend', function (e) {
+                e.preventDefault();
                 for (var t = 0; t < e.changedTouches.length; t++) {
                     delete detailTouches[e.changedTouches[t].identifier];
                 }
@@ -1489,15 +1691,33 @@
                 if (stickerId) {
                     sendSticker(stickerId);
                 } else {
-                    // 聊天表情点进来的，没有 id → 按 URL/name 发送
-                    if (isImage) {
-                        var encoded = b64Encode(url);
-                        if (encoded) sendToChatInput('[E:' + encoded + ':' + name + ']');
+                    // 聊天贴纸点进来的，没有 id → 按 URL/name 发送
+                    if (!isTextSticker(url)) {
+                        var payload = bestPayload(url, name);
+                        if (payload) sendToChatInput('[E:' + payload + ':' + name + ']', { append: true, send: true });
                     } else {
-                        sendToChatInput(url);
+                        sendToChatInput(url, { append: true, send: false });
                     }
                 }
                 hideStickerDetail();
+            };
+        }
+
+        // 复制本地路径按钮（file:// 无法从网页打开，改为复制路径）
+        var copyPathBtn = document.getElementById('lvDetailCopyPathBtn');
+        if (copyPathBtn) {
+            copyPathBtn.onclick = function (e) {
+                e.stopPropagation();
+                var filePath = url.replace(/^file:\/\/\//i, ''); // file:///C:/... → C:/...
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(filePath).then(function () {
+                        showToastMsg('本地路径已复制: ' + filePath);
+                    })['catch'](function () {
+                        showToastMsg('复制失败，请手动选择路径');
+                    });
+                } else {
+                    showToastMsg('本地路径: ' + filePath);
+                }
             };
         }
 
@@ -1513,7 +1733,7 @@
             };
         }
 
-        // 添加到我的表情
+        // 添加到我的贴纸
         var addBtn = document.getElementById('lvDetailAddBtn');
         if (addBtn) {
             var list = getStickerList();
@@ -1572,14 +1792,16 @@
     var _detailMouseMoveFn = null;
     var _detailMouseUpFn = null;
 
-    // 事件委托：点击聊天表情打开详情
+    // 事件委托：点击聊天贴纸打开详情
     function onChatStickerClick(e) {
         var el = e.target;
         if (el && (el.classList.contains('lv-chat-sticker') || el.classList.contains('lv-chat-sticker-video-btn') || el.classList.contains('lv-chat-sticker-audio-btn'))) {
             var url = el.getAttribute('data-lv-url');
-            var name = el.getAttribute('data-lv-name') || '表情';
+            var name = el.getAttribute('data-lv-name') || '贴纸';
+            var msgEl = el.closest('.chat-msg-text');
+            var rawText = msgEl && msgEl._lvStickerRawText ? msgEl._lvStickerRawText : '';
             if (url) {
-                showStickerDetail({ url: url, name: name });
+                showStickerDetail({ url: url, name: name, rawText: rawText });
             }
         }
     }
@@ -1602,7 +1824,7 @@
         applyStickerSize();
         injectStickerButtons();
 
-        // 窗口大小变化时重新计算表情大小
+        // 窗口大小变化时重新计算贴纸大小
         window.addEventListener('resize', function () {
             applyStickerSize();
         });
@@ -1667,7 +1889,7 @@
         setInterval(injectStickerButtons, 5000);
     }
 
-    // 等游戏 UI 加载后初始化
+    // 等游戏 UI 加载后初始化（仅游戏页面需要，避免其他页面无限轮询）
     function waitAndInit() {
         if (document.getElementById('inlineChatInput') || document.getElementById('chatInput') || document.getElementById('chatBtn')) {
             init();
@@ -1675,6 +1897,9 @@
             setTimeout(waitAndInit, 800);
         }
     }
+
+    // 仅在游戏页面初始化，其他页面跳过
+    if (!/\/game\.html/.test(location.pathname)) return;
 
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', function () { setTimeout(waitAndInit, 1500); });
