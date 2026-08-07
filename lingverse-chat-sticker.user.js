@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         LingVerse 聊天表情
 // @namespace    local.lingverse.sticker
-// @version      1.0.2
-// @description  灵界聊天自定义贴纸：点贴纸按钮发送，装了脚本的玩家互相可见图片
+// @version      1.0.3
+// @description  灵界聊天自定义贴纸：点贴纸按钮发送
 // @match        https://ling.muge.info/*
 // @grant        GM_xmlhttpRequest
 // @connect      *
@@ -106,7 +106,7 @@
             '.lv-mgmt-toggle{',
             'display:flex;align-items:center;justify-content:center;',
             'width:100%;height:34px;',
-            'background:var(--stk-btn-bg);border:0;',
+            'background:transparent;border:0;border-radius:0 0 12px 12px;',
             'color:var(--stk-label);font-size:11px;font-weight:600;font-family:var(--stk-font);',
             'cursor:pointer;transition:background .2s,color .2s;letter-spacing:.5px;',
             '}',
@@ -211,7 +211,11 @@
             'transition:background .2s;',
             '}',
             '.lv-mgmt-del:hover{background:var(--stk-danger-hover);}',
-            '/* 聊天按钮 */',
+            '/* 贴纸按钮行（聊天输入框下方独立一行） */',
+            '#lvStickerBtnRow{',
+            'display:flex;align-items:center;gap:6px;',
+            'padding:4px 0 2px;flex-shrink:0;',
+            '}',
             '#lvStickerChatBtn{',
             'width:36px;min-width:36px;height:36px;padding:4px;',
             'flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;',
@@ -223,6 +227,15 @@
             '}',
             '#lvStickerChatBtn:hover{background:var(--stk-btn-hover-bg);color:var(--stk-btn-hover-text);}',
             '#lvStickerChatBtn{user-select:none;-webkit-tap-highlight-color:transparent;}',
+            '/* 绕过屏蔽词开关 */',
+            '.lv-bypass-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}',
+            '.lv-bypass-row label{margin-bottom:0;font-size:11px;font-weight:600;font-family:var(--stk-font);color:var(--stk-label);letter-spacing:.3px;}',
+            '.lv-bypass-switch{position:relative;width:36px;height:20px;flex:0 0 36px;-webkit-tap-highlight-color:transparent;}',
+            '.lv-bypass-switch input{opacity:0;width:0;height:0;position:absolute;}',
+            '.lv-bypass-track{position:absolute;inset:0;background:var(--stk-input-bg);border:1px solid var(--stk-input-border);border-radius:10px;cursor:pointer;transition:background .3s,border-color .3s;display:flex;align-items:center;}',
+            '.lv-bypass-thumb{width:14px;height:14px;background:var(--stk-label);border-radius:50%;transition:transform .3s,background .3s;pointer-events:none;flex-shrink:0;transform:translateX(3px);}',
+            '.lv-bypass-switch input:checked+.lv-bypass-track{background:var(--stk-accent);border-color:var(--stk-accent);}',
+            '.lv-bypass-switch input:checked+.lv-bypass-track .lv-bypass-thumb{transform:translateX(18px);background:#fff;}',
             '/* 聊天内贴纸 */',
             '.lv-chat-sticker{width:var(--stk-sticker-size,50%);height:auto;object-fit:contain;vertical-align:middle;border-radius:6px;margin:0 1px;}',
             '.lv-chat-sticker-video-btn{',
@@ -663,6 +676,70 @@
         try { localStorage.setItem(STICKER_SIZE_KEY, String(pct)); } catch (e) {}
     }
 
+    // ===================== 绕过屏蔽词：字母替换编解码 =====================
+    var BYPASS_KEY = 'lvStickerBypass';
+
+    function getBypassEnabled() {
+        try { return localStorage.getItem(BYPASS_KEY) === '1'; } catch (e) { return false; }
+    }
+
+    function setBypassEnabled(v) {
+        try { localStorage.setItem(BYPASS_KEY, v ? '1' : '0'); } catch (e) {}
+    }
+
+    // base64 字母替换表（种子 shuffle，脚本专属）
+    var B64_STD = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
+    var B64_SUB = '';
+    var _b64DecMap = {};
+    (function () {
+        var seed = 'stickermix'.split('').reduce(function(s,c){return s*31+c.charCodeAt(0)},7);
+        function rng() { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; }
+        var arr = B64_STD.split('');
+        for (var j = arr.length - 1; j > 0; j--) {
+            var k = Math.floor(rng() * (j + 1));
+            var tmp = arr[j]; arr[j] = arr[k]; arr[k] = tmp;
+        }
+        B64_SUB = arr.join('');
+        for (var i = 0; i < B64_STD.length; i++) {
+            _b64DecMap[B64_SUB[i]] = B64_STD[i];
+        }
+    })();
+
+    function subEncode(text) {
+        if (!text) return '';
+        try {
+            var bytes = new TextEncoder().encode(text);
+            var bin = '';
+            for (var i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+            var b64 = btoa(bin);
+            var out = '';
+            for (var j = 0; j < b64.length; j++) {
+                out += _b64DecMap[b64[j]] ? B64_SUB[B64_STD.indexOf(b64[j])] : b64[j];
+            }
+            return out;
+        } catch (e) { return ''; }
+    }
+
+    function subDecode(encoded) {
+        if (!encoded) return '';
+        try {
+            var b64 = '';
+            for (var i = 0; i < encoded.length; i++) {
+                b64 += _b64DecMap[encoded[i]] || encoded[i];
+            }
+            var bin = atob(b64);
+            var bytes = new Uint8Array(bin.length);
+            for (var j = 0; j < bin.length; j++) bytes[j] = bin.charCodeAt(j);
+            return new TextDecoder().decode(bytes);
+        } catch (e) { return ''; }
+    }
+
+    // 启动时自测
+    (function () {
+        var t = 'https://example.com/test.png';
+        if (subDecode(subEncode(t)) !== t) console.error('[lvSticker] 字母替换自测失败');
+    })();
+
     function applyStickerSize() {
         var pct = getStickerSize();
         // 测量可见聊天消息容器的实际宽度，以此为基准计算像素值
@@ -702,6 +779,7 @@
 
     // ===================== 贴纸选择面板 =====================
     var pickerVisible = false;
+    var pickerOpenedAt = 0;
     var pickerEl = null;
     var manageVisible = false;
 
@@ -778,6 +856,10 @@
             '<button id="lvStickerExportBtn" class="lv-btn-outline">导出</button>' +
             '<button id="lvStickerImportBtn" class="lv-btn-outline">导入</button>' +
             '<input id="lvStickerImportInput" type="text" placeholder="粘贴 JSON" style="flex:1;height:26px;font-size:11px;display:none;background:var(--stk-input-bg);border:1px solid var(--stk-input-border);border-radius:6px;color:var(--stk-text);padding:0 8px;font-family:var(--stk-font);outline:none;">' +
+            '</div>' +
+            '<div class="lv-bypass-row">' +
+            '<label>绕过屏蔽词</label>' +
+            '<label class="lv-bypass-switch"><input type="checkbox" id="lvBypassToggle"' + (getBypassEnabled() ? ' checked' : '') + '><span class="lv-bypass-track"><span class="lv-bypass-thumb"></span></span></label>' +
             '</div>' +
             '<div class="lv-mgmt-row">' +
             '<div class="lv-size-label"><span>贴纸大小</span><span id="lvStickerSizeVal">' + getStickerSize() + '%</span></div>' +
@@ -910,6 +992,16 @@
             };
         }
 
+        // --- 绕过屏蔽词开关 ---
+        var bypassToggle = document.getElementById('lvBypassToggle');
+        if (bypassToggle) {
+            bypassToggle.onchange = function (e) {
+                e.stopPropagation();
+                setBypassEnabled(bypassToggle.checked);
+                showToastMsg(bypassToggle.checked ? '已开启绕过屏蔽词（CJK编码）' : '已关闭绕过屏蔽词');
+            };
+        }
+
         // Render management list
         renderManageList();
 
@@ -923,6 +1015,18 @@
                 setStickerSize(pct);
                 applyStickerSize();
             };
+            // 滚动时禁用滑块，防止误触
+            var mgmtPanel = document.getElementById('lvStickerManagePanel');
+            if (mgmtPanel) {
+                var scrollTimer = null;
+                mgmtPanel.addEventListener('scroll', function () {
+                    sizeSlider.style.pointerEvents = 'none';
+                    if (scrollTimer) clearTimeout(scrollTimer);
+                    scrollTimer = setTimeout(function () {
+                        sizeSlider.style.pointerEvents = '';
+                    }, 300);
+                }, { passive: true });
+            }
         }
 
         // 保持管理面板展开状态（因 renderPicker 会重建 DOM）
@@ -1130,6 +1234,16 @@
         return true;
     }
 
+    // 绕过模式：尝试字母替换编码，成功返回完整消息字符串，失败返回 null
+    function tryBypassMsg(url, name) {
+        if (!getBypassEnabled()) return null;
+        var enc = subEncode(url);
+        var msg = '[#' + enc + '#' + (name || '') + ']';
+        if (msg.length <= 200) return msg;
+        showToastMsg('编码后 ' + msg.length + ' 字超限，降级为普通编码');
+        return null;
+    }
+
     function sendSticker(id) {
         var list = getStickerList();
         var sticker = null;
@@ -1138,6 +1252,16 @@
 
         // 文本类贴纸：追加到输入框末尾，不自动发送（用户可继续编辑）
         if (isTextSticker(sticker.url)) {
+            if (getBypassEnabled()) {
+                var enc = subEncode(sticker.url);
+                var msg = '[#' + enc + '#' + (sticker.name || '') + ']';
+                if (msg.length <= 200) {
+                    if (sendToChatInput(msg, { append: true, send: false })) {
+                        showToastMsg('已插入文字「' + (sticker.name || sticker.url) + '」（可继续编辑）');
+                    }
+                    return;
+                }
+            }
             if (sendToChatInput(sticker.url, { append: true, send: false })) {
                 showToastMsg('已插入文字「' + (sticker.name || sticker.url) + '」（可继续编辑）');
             }
@@ -1146,6 +1270,13 @@
 
         // 视频类贴纸
         if (isVideoUrl(sticker.url)) {
+            var bypassMsgV = tryBypassMsg(sticker.url, sticker.name);
+            if (bypassMsgV) {
+                if (sendToChatInput(bypassMsgV, { append: true, send: true })) {
+                    showToastMsg('已插入视频「' + sticker.name + '」到聊天框');
+                }
+                return;
+            }
             var payloadV = bestPayload(sticker.url, sticker.name);
             if (!payloadV) return;
             if (sendToChatInput('[E:' + payloadV + ':' + sticker.name + ']', { append: true, send: true })) {
@@ -1156,6 +1287,13 @@
 
         // 音频类贴纸
         if (isAudioUrl(sticker.url)) {
+            var bypassMsgA = tryBypassMsg(sticker.url, sticker.name);
+            if (bypassMsgA) {
+                if (sendToChatInput(bypassMsgA, { append: true, send: true })) {
+                    showToastMsg('已插入音频「' + sticker.name + '」到聊天框');
+                }
+                return;
+            }
             var payloadA = bestPayload(sticker.url, sticker.name);
             if (!payloadA) return;
             if (sendToChatInput('[E:' + payloadA + ':' + sticker.name + ']', { append: true, send: true })) {
@@ -1165,6 +1303,13 @@
         }
 
         // 图片 / 其他媒体贴纸：追加到已有内容后面一起发出
+        var bypassMsg = tryBypassMsg(sticker.url, sticker.name);
+        if (bypassMsg) {
+            if (sendToChatInput(bypassMsg, { append: true, send: true })) {
+                showToastMsg('已插入贴纸「' + sticker.name + '」到聊天框');
+            }
+            return;
+        }
         var payload = bestPayload(sticker.url, sticker.name);
         if (!payload) return;
         if (sendToChatInput('[E:' + payload + ':' + sticker.name + ']', { append: true, send: true })) {
@@ -1191,6 +1336,7 @@
         pickerEl.style.left = left + 'px';
         pickerEl.style.display = 'flex';
         pickerVisible = true;
+        pickerOpenedAt = Date.now();
         setTimeout(function () {
             document.addEventListener('click', hidePickerOnOutside, true);
         }, 50);
@@ -1205,6 +1351,8 @@
 
     function hidePickerOnOutside(e) {
         if (!pickerVisible) return;
+        // 防止打开面板的那次点击被误捕获
+        if (Date.now() - pickerOpenedAt < 200) return;
         // 点在面板内部或详情弹窗上 → 不处理
         if (pickerEl && pickerEl.contains(e.target)) return;
         if (detailOverlay && detailOverlay.style.display !== 'none' && detailOverlay.contains(e.target)) return;
@@ -1238,7 +1386,9 @@
             // 找到 input 所在的 chat-input-bar
             var bar = input.closest(targets[t].barSelector);
             if (!bar) continue;
-            if (bar.querySelector('#lvStickerChatBtn')) continue;
+            // 检查是否已注入（行级）
+            var foot = bar.closest('.chat-composer-foot') || bar.parentNode;
+            if (foot.querySelector('#lvStickerBtnRow')) continue;
 
             var btn = document.createElement('button');
             btn.type = 'button';
@@ -1260,13 +1410,17 @@
                 });
             })(btn);
 
-            // 插到 input 前面（发送按钮之前）
-            bar.insertBefore(btn, input);
+            // 创建独立一行，放在 chat-input-bar 下方
+            var row = document.createElement('div');
+            row.id = 'lvStickerBtnRow';
+            row.appendChild(btn);
+            bar.parentNode.insertBefore(row, bar.nextSibling);
         }
     }
 
     // ===================== 消息渲染器 =====================
     var STICKER_RE = /\[E:([\s\S]+?):([^:\]]*)\]/g;
+    var STICKER_SUB_RE = /\[#([\s\S]*?)#([^\]]*)\]/g;
 
     function renderMsgText(el) {
         if (!el) return;
@@ -1274,23 +1428,36 @@
         var text = el.textContent || '';
         if (el._lvStickerLastText === text) return;
         el._lvStickerLastText = text;
-        if (text.indexOf('[E:') === -1) return;
+        if (text.indexOf('[E:') === -1 && text.indexOf('[#') === -1) return;
         el._lvStickerRawText = text; // 保存原始数据，供详情弹窗展示
+
+        // 收集所有匹配（旧格式 + 替换格式），按出现顺序排序
+        var matches = [];
+        STICKER_RE.lastIndex = 0;
+        var m;
+        while ((m = STICKER_RE.exec(text)) !== null) {
+            matches.push({ index: m.index, end: STICKER_RE.lastIndex, payload: m[1], name: m[2], isSub: false });
+        }
+        STICKER_SUB_RE.lastIndex = 0;
+        while ((m = STICKER_SUB_RE.exec(text)) !== null) {
+            matches.push({ index: m.index, end: STICKER_SUB_RE.lastIndex, payload: m[1], name: m[2], isSub: true });
+        }
+        if (!matches.length) return;
+        matches.sort(function (a, b) { return a.index - b.index; });
 
         // 用 DOM API 构建替换结果，避免字符串拼接 HTML 的坑
         var frag = document.createDocumentFragment();
         var lastIdx = 0;
-        STICKER_RE.lastIndex = 0;
-        var m;
-        while ((m = STICKER_RE.exec(text)) !== null) {
+        for (var i = 0; i < matches.length; i++) {
+            var mt = matches[i];
             // 匹配前的纯文本
-            if (m.index > lastIdx) {
-                frag.appendChild(document.createTextNode(text.slice(lastIdx, m.index)));
+            if (mt.index > lastIdx) {
+                frag.appendChild(document.createTextNode(text.slice(lastIdx, mt.index)));
             }
-            lastIdx = STICKER_RE.lastIndex;
+            lastIdx = mt.end;
 
-            var url = b64Decode(m[1]);
-            var name = m[2] || '贴纸';
+            var url = mt.isSub ? subDecode(mt.payload) : b64Decode(mt.payload);
+            var name = mt.name || '贴纸';
             if (url) {
                 if (isVideoUrl(url)) {
                     var vidBtn = document.createElement('span');
@@ -1329,7 +1496,7 @@
                 }
             } else {
                 // 解码失败，保留原文
-                frag.appendChild(document.createTextNode(m[0]));
+                frag.appendChild(document.createTextNode(text.slice(mt.index, mt.end)));
             }
         }
         // 尾巴文本
@@ -1693,10 +1860,22 @@
                 } else {
                     // 聊天贴纸点进来的，没有 id → 按 URL/name 发送
                     if (!isTextSticker(url)) {
-                        var payload = bestPayload(url, name);
-                        if (payload) sendToChatInput('[E:' + payload + ':' + name + ']', { append: true, send: true });
+                        var bypassMsg = tryBypassMsg(url, name);
+                        if (bypassMsg) {
+                            sendToChatInput(bypassMsg, { append: true, send: true });
+                        } else {
+                            var payload = bestPayload(url, name);
+                            if (payload) sendToChatInput('[E:' + payload + ':' + name + ']', { append: true, send: true });
+                        }
                     } else {
-                        sendToChatInput(url, { append: true, send: false });
+                        if (getBypassEnabled()) {
+                            var enc = subEncode(url);
+                            var msg = '[#' + enc + '#' + (name || '') + ']';
+                            if (msg.length <= 200) { sendToChatInput(msg, { append: true, send: false }); }
+                            else { sendToChatInput(url, { append: true, send: false }); }
+                        } else {
+                            sendToChatInput(url, { append: true, send: false });
+                        }
                     }
                 }
                 hideStickerDetail();
