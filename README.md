@@ -372,6 +372,6 @@ Tampermonkey 会按照脚本头部的 `@updateURL` 自动检查更新。你也�
 
 ---
 
-> >///< : [lingverse-chat-sticker](https://github.com/sewolonX/lingverse-chat-sticker)
+> \>///< : [lingverse-chat-sticker](https://github.com/sewolonX/lingverse-chat-sticker)
 
 [![👀](https://sewolon.oss-cn-shanghai.aliyuncs.com/3482ff.jpg)](https://sewolon.oss-cn-shanghai.aliyuncs.com/3482ff.jpg)
